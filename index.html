@@ -42,8 +42,8 @@
   <!-- 🎧 Lacher -->
   <audio id="laugh" src="https://www.myinstants.com/media/sounds/cartoon-laugh.mp3"></audio>
 
-  <!-- 🍻 Trinkgeräusch (funktionierend) -->
-  <audio id="drink" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d82cdba4c3.mp3?filename=can-opening-17141.mp3"></audio>
+  <!-- 🍻 Trinkgeräusch (neue Quelle, OGG) -->
+  <audio id="drink" src="https://actions.google.com/sounds/v1/household/can_opening.ogg"></audio>
 
   <script>
     let voices = [];
@@ -84,7 +84,6 @@
       speechSynthesis.speak(utterance);
 
       utterance.onend = () => {
-        // 🎧 Lacher nach dem Vorlesen
         document.getElementById("laugh").play();
       };
     }
@@ -105,7 +104,11 @@
         document.getElementById("hint").style.display = "none";
 
         // 🍻 Trinkgeräusch sofort beim Tippen
-        document.getElementById("drink").play();
+        const drinkAudio = document.getElementById("drink");
+        drinkAudio.currentTime = 0;
+        drinkAudio.play().catch(e => {
+          console.warn("Trinkgeräusch konnte nicht abgespielt werden:", e);
+        });
 
         // 🎉 Emoji-Explosion
         showEmoji();
