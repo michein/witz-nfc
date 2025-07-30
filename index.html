@@ -25,45 +25,48 @@
 <body>
   <h1>😂 Witz des Tages</h1>
   <p id="joke">Lade Witz...</p>
-  <p id="hint">👆 Tippe irgendwo, um den Witz zu hören (auf Mobilgeräten)</p>
+  <p id="hint">👆 Tippe irgendwo, um den Witz zu hören (nur beim ersten Mal)</p>
 
   <script>
     let voices = [];
+    let currentJoke = ""; // Hier speichern wir den geladenen Witz
 
     window.speechSynthesis.onvoiceschanged = () => {
       voices = speechSynthesis.getVoices();
     };
 
-    async function getJokeAndMaybeSpeak(speak = false) {
+    async function getJoke() {
       const jokeEl = document.getElementById("joke");
       try {
         const res = await fetch("https://witzapi.de/api/joke");
         const data = await res.json();
-        const joke = data[0].text;
-        jokeEl.textContent = joke;
-
-        if (speak) {
-          const utterance = new SpeechSynthesisUtterance(joke);
-          utterance.lang = "de-DE";
-          utterance.rate = 0.95;
-          utterance.pitch = 1;
-
-          const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
-          const fallbackVoice = voices.find(v => v.lang === "de-DE");
-          utterance.voice = googleVoice || fallbackVoice;
-
-          speechSynthesis.speak(utterance);
-        }
+        currentJoke = data[0].text;
+        jokeEl.textContent = currentJoke;
       } catch (err) {
         jokeEl.textContent = "Fehler beim Laden des Witzes.";
       }
     }
 
-    // Witz sofort laden (aber nicht sprechen auf Mobile)
+    function speakJoke() {
+      if (!currentJoke) return;
+
+      const utterance = new SpeechSynthesisUtterance(currentJoke);
+      utterance.lang = "de-DE";
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+
+      const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
+      const fallbackVoice = voices.find(v => v.lang === "de-DE");
+      utterance.voice = googleVoice || fallbackVoice;
+
+      speechSynthesis.speak(utterance);
+    }
+
+    // Seite lädt → Witz holen (aber nicht vorlesen)
     window.onload = () => {
       const init = () => {
         voices = speechSynthesis.getVoices();
-        getJokeAndMaybeSpeak(false);
+        getJoke();
       };
 
       if (speechSynthesis.getVoices().length === 0) {
@@ -72,9 +75,9 @@
         init();
       }
 
-      // Beim ersten Nutzerklick: Vorlesen starten
+      // Nur einmal beim ersten Tippen vorlesen
       document.body.addEventListener("click", () => {
-        getJokeAndMaybeSpeak(true);
+        speakJoke();
         document.getElementById("hint").style.display = "none";
       }, { once: true });
     };
