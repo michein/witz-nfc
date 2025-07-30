@@ -39,8 +39,11 @@
   <p id="hint">👆 Tippe irgendwo, um den Witz zu hören</p>
   <div id="emoji">🍻😂🎉</div>
 
+  <!-- 🎧 Lacher -->
   <audio id="laugh" src="https://www.myinstants.com/media/sounds/cartoon-laugh.mp3"></audio>
-  <audio id="drink" src="https://www.myinstants.com/media/sounds/can-opening.mp3"></audio>
+
+  <!-- 🍻 Trinkgeräusch (funktionierend) -->
+  <audio id="drink" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d82cdba4c3.mp3?filename=can-opening-17141.mp3"></audio>
 
   <script>
     let voices = [];
@@ -81,7 +84,7 @@
       speechSynthesis.speak(utterance);
 
       utterance.onend = () => {
-        // Lacher nach dem Witz
+        // 🎧 Lacher nach dem Vorlesen
         document.getElementById("laugh").play();
       };
     }
@@ -101,13 +104,13 @@
       document.body.addEventListener("click", () => {
         document.getElementById("hint").style.display = "none";
 
-        // 🍻 Trinkgeräusch sofort
+        // 🍻 Trinkgeräusch sofort beim Tippen
         document.getElementById("drink").play();
 
         // 🎉 Emoji-Explosion
         showEmoji();
 
-        // 🎧 Witz vorlesen, danach Lacher
+        // 😂 Witz vorlesen, danach 🎧 Lacher
         speakJoke();
       }, { once: true });
     });
