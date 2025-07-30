@@ -8,7 +8,78 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
+      margin: 2em;<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Witz vorlesen</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
       margin: 2em;
+      background-color: #f0f0f0;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 1em 2em;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #joke {
+      margin-top: 1.5em;
+      font-size: 1.4em;
+      min-height: 3em;
+    }
+  </style>
+</head>
+<body>
+  <h1>😂 Erzähl mir einen Witz</h1>
+  <button onclick="getJokeAndSpeak()">Jetzt Witz hören</button>
+  <p id="joke">Hier erscheint der Witz.</p>
+
+  <script>
+    let voices = [];
+
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = speechSynthesis.getVoices();
+    };
+
+    async function getJokeAndSpeak() {
+      const jokeEl = document.getElementById("joke");
+      jokeEl.textContent = "Lade Witz...";
+
+      try {
+        const res = await fetch("https://witzapi.de/api/joke");
+        const data = await res.json(); // JSON parsen
+        const joke = data[0].text; // Nur den Text nehmen
+
+        jokeEl.textContent = joke;
+
+        const utterance = new SpeechSynthesisUtterance(joke);
+        utterance.lang = "de-DE";
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+
+        const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
+        const fallbackVoice = voices.find(v => v.lang === "de-DE");
+
+        utterance.voice = googleVoice || fallbackVoice;
+
+        speechSynthesis.speak(utterance);
+      } catch (error) {
+        jokeEl.textContent = "Fehler beim Laden des Witzes.";
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
+
       background-color: #f0f0f0;
     }
     button {
