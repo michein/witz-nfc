@@ -25,25 +25,35 @@
 <body>
   <h1>😂 Witz des Tages</h1>
   <p id="joke">Lade Witz...</p>
-  <p id="hint">👆 Tippe irgendwo, um den Witz zu hören (nur beim ersten Mal)</p>
+  <p id="hint">👆 Tippe irgendwo, um den Witz zu hören</p>
 
   <script>
     let voices = [];
-    let currentJoke = ""; // Hier speichern wir den geladenen Witz
+    let currentJoke = "";
 
-    window.speechSynthesis.onvoiceschanged = () => {
-      voices = speechSynthesis.getVoices();
-    };
+    function loadVoices() {
+      return new Promise((resolve) => {
+        let availableVoices = speechSynthesis.getVoices();
+        if (availableVoices.length) {
+          resolve(availableVoices);
+        } else {
+          speechSynthesis.onvoiceschanged = () => {
+            availableVoices = speechSynthesis.getVoices();
+            resolve(availableVoices);
+          };
+        }
+      });
+    }
 
-    async function getJoke() {
-      const jokeEl = document.getElementById("joke");
+    async function fetchJoke() {
       try {
         const res = await fetch("https://witzapi.de/api/joke");
         const data = await res.json();
         currentJoke = data[0].text;
-        jokeEl.textContent = currentJoke;
-      } catch (err) {
-        jokeEl.textContent = "Fehler beim Laden des Witzes.";
+        document.getElementById("joke").textContent = currentJoke;
+      } catch (e) {
+        currentJoke = "Fehler beim Laden des Witzes.";
+        document.getElementById("joke").textContent = currentJoke;
       }
     }
 
@@ -62,25 +72,16 @@
       speechSynthesis.speak(utterance);
     }
 
-    // Seite lädt → Witz holen (aber nicht vorlesen)
-    window.onload = () => {
-      const init = () => {
-        voices = speechSynthesis.getVoices();
-        getJoke();
-      };
+    window.addEventListener("load", async () => {
+      voices = await loadVoices();
+      await fetchJoke();
 
-      if (speechSynthesis.getVoices().length === 0) {
-        speechSynthesis.onvoiceschanged = init;
-      } else {
-        init();
-      }
-
-      // Nur einmal beim ersten Tippen vorlesen
+      // Nur beim ersten Tippen vorlesen
       document.body.addEventListener("click", () => {
         speakJoke();
         document.getElementById("hint").style.display = "none";
       }, { once: true });
-    };
+    });
   </script>
 </body>
 </html>
