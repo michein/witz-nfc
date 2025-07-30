@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Witz automatisch</title>
+  <title>Witz des Tages</title>
   <style>
     body {
       font-family: sans-serif;
@@ -20,28 +20,37 @@
       color: gray;
       font-size: 0.9em;
     }
+    #emoji {
+      display: none;
+      font-size: 2.5em;
+      margin-top: 1em;
+      animation: pop 0.5s ease-in-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>
   <h1>😂 Witz des Tages</h1>
   <p id="joke">Lade Witz...</p>
   <p id="hint">👆 Tippe irgendwo, um den Witz zu hören</p>
+  <div id="emoji">🍻😂🎉</div>
+
+  <audio id="laugh" src="https://www.myinstants.com/media/sounds/cartoon-laugh.mp3"></audio>
+  <audio id="drink" src="https://www.myinstants.com/media/sounds/can-opening.mp3"></audio>
 
   <script>
     let voices = [];
     let currentJoke = "";
 
     function loadVoices() {
-      return new Promise((resolve) => {
-        let availableVoices = speechSynthesis.getVoices();
-        if (availableVoices.length) {
-          resolve(availableVoices);
-        } else {
-          speechSynthesis.onvoiceschanged = () => {
-            availableVoices = speechSynthesis.getVoices();
-            resolve(availableVoices);
-          };
-        }
+      return new Promise(resolve => {
+        const available = speechSynthesis.getVoices();
+        if (available.length) resolve(available);
+        else speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
       });
     }
 
@@ -70,16 +79,36 @@
       utterance.voice = googleVoice || fallbackVoice;
 
       speechSynthesis.speak(utterance);
+
+      utterance.onend = () => {
+        // Lacher nach dem Witz
+        document.getElementById("laugh").play();
+      };
+    }
+
+    function showEmoji() {
+      const emoji = document.getElementById("emoji");
+      emoji.style.display = "block";
+      setTimeout(() => {
+        emoji.style.display = "none";
+      }, 2000);
     }
 
     window.addEventListener("load", async () => {
       voices = await loadVoices();
       await fetchJoke();
 
-      // Nur beim ersten Tippen vorlesen
       document.body.addEventListener("click", () => {
-        speakJoke();
         document.getElementById("hint").style.display = "none";
+
+        // 🍻 Trinkgeräusch sofort
+        document.getElementById("drink").play();
+
+        // 🎉 Emoji-Explosion
+        showEmoji();
+
+        // 🎧 Witz vorlesen, danach Lacher
+        speakJoke();
       }, { once: true });
     });
   </script>
