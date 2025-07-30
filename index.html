@@ -42,7 +42,7 @@
   <!-- 🎧 Lacher -->
   <audio id="laugh" src="https://www.myinstants.com/media/sounds/cartoon-laugh.mp3"></audio>
 
-  <!-- 🍻 Trinkgeräusch (neue Quelle, OGG) -->
+  <!-- 🍻 Trinkgeräusch (am Ende) -->
   <audio id="drink" src="https://actions.google.com/sounds/v1/household/can_opening.ogg"></audio>
 
   <script>
@@ -84,7 +84,15 @@
       speechSynthesis.speak(utterance);
 
       utterance.onend = () => {
-        document.getElementById("laugh").play();
+        // 🎧 Lacher nach dem Vorlesen
+        const laughAudio = document.getElementById("laugh");
+        laughAudio.play();
+
+        // Nach Lachen Trinkgeräusch abspielen
+        laughAudio.onended = () => {
+          const drinkAudio = document.getElementById("drink");
+          drinkAudio.play();
+        };
       };
     }
 
@@ -103,17 +111,10 @@
       document.body.addEventListener("click", () => {
         document.getElementById("hint").style.display = "none";
 
-        // 🍻 Trinkgeräusch sofort beim Tippen
-        const drinkAudio = document.getElementById("drink");
-        drinkAudio.currentTime = 0;
-        drinkAudio.play().catch(e => {
-          console.warn("Trinkgeräusch konnte nicht abgespielt werden:", e);
-        });
-
-        // 🎉 Emoji-Explosion
+        // 🎉 Emoji-Explosion sofort beim Tippen
         showEmoji();
 
-        // 😂 Witz vorlesen, danach 🎧 Lacher
+        // 😂 Witz vorlesen, danach Lachen und dann Bieröffner-Sound
         speakJoke();
       }, { once: true });
     });
