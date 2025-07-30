@@ -3,24 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Witz wird vorgelesen</title>
+  <title>Witz automatisch</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       text-align: center;
-      margin: 2em;
-      background-color: #f0f0f0;
+      padding: 2em;
+      background-color: #f8f8f8;
     }
     #joke {
       margin-top: 2em;
-      font-size: 1.5em;
-      font-weight: bold;
+      font-size: 1.4em;
+    }
+    #hint {
+      margin-top: 1em;
+      color: gray;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
   <h1>😂 Witz des Tages</h1>
   <p id="joke">Lade Witz...</p>
+  <p id="hint">👆 Tippe irgendwo, um den Witz zu hören (auf Mobilgeräten)</p>
 
   <script>
     let voices = [];
@@ -29,44 +34,49 @@
       voices = speechSynthesis.getVoices();
     };
 
-    async function getJokeAndSpeak() {
+    async function getJokeAndMaybeSpeak(speak = false) {
       const jokeEl = document.getElementById("joke");
-
       try {
         const res = await fetch("https://witzapi.de/api/joke");
         const data = await res.json();
         const joke = data[0].text;
-
         jokeEl.textContent = joke;
 
-        const utterance = new SpeechSynthesisUtterance(joke);
-        utterance.lang = "de-DE";
-        utterance.rate = 0.95;
-        utterance.pitch = 1;
+        if (speak) {
+          const utterance = new SpeechSynthesisUtterance(joke);
+          utterance.lang = "de-DE";
+          utterance.rate = 0.95;
+          utterance.pitch = 1;
 
-        const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
-        const fallbackVoice = voices.find(v => v.lang === "de-DE");
-        utterance.voice = googleVoice || fallbackVoice;
+          const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
+          const fallbackVoice = voices.find(v => v.lang === "de-DE");
+          utterance.voice = googleVoice || fallbackVoice;
 
-        speechSynthesis.speak(utterance);
-      } catch (error) {
-        jokeEl.textContent = "Fehler beim Witzabruf.";
-        console.error(error);
+          speechSynthesis.speak(utterance);
+        }
+      } catch (err) {
+        jokeEl.textContent = "Fehler beim Laden des Witzes.";
       }
     }
 
-    // Starte automatisch beim Laden der Seite
+    // Witz sofort laden (aber nicht sprechen auf Mobile)
     window.onload = () => {
-      const initVoices = () => {
+      const init = () => {
         voices = speechSynthesis.getVoices();
-        getJokeAndSpeak();
+        getJokeAndMaybeSpeak(false);
       };
 
       if (speechSynthesis.getVoices().length === 0) {
-        speechSynthesis.onvoiceschanged = initVoices;
+        speechSynthesis.onvoiceschanged = init;
       } else {
-        initVoices();
+        init();
       }
+
+      // Beim ersten Nutzerklick: Vorlesen starten
+      document.body.addEventListener("click", () => {
+        getJokeAndMaybeSpeak(true);
+        document.getElementById("hint").style.display = "none";
+      }, { once: true });
     };
   </script>
 </body>
