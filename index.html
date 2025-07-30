@@ -1,1 +1,122 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Witz des Tages</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background-color: #f8f8f8;
+    }
+    #joke {
+      margin-top: 2em;
+      font-size: 1.4em;
+    }
+    #hint {
+      margin-top: 1em;
+      color: gray;
+      font-size: 0.9em;
+    }
+    #emoji {
+      display: none;
+      font-size: 2.5em;
+      margin-top: 1em;
+      animation: pop 0.5s ease-in-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>😂 Witz des Tages</h1>
+  <p id="joke">Lade Witz...</p>
+  <p id="hint">👆 Tippe irgendwo, um den Witz zu hören</p>
+  <div id="emoji">🍻😂🎉</div>
 
+  <!-- 🎧 Lacher -->
+  <audio id="laugh" src="https://www.myinstants.com/media/sounds/cartoon-laugh.mp3"></audio>
+
+  <!-- 🍻 Trinkgeräusch (neue Quelle, OGG) -->
+  <audio id="drink" src="https://actions.google.com/sounds/v1/household/can_opening.ogg"></audio>
+
+  <script>
+    let voices = [];
+    let currentJoke = "";
+
+    function loadVoices() {
+      return new Promise(resolve => {
+        const available = speechSynthesis.getVoices();
+        if (available.length) resolve(available);
+        else speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
+      });
+    }
+
+    async function fetchJoke() {
+      try {
+        const res = await fetch("https://witzapi.de/api/joke");
+        const data = await res.json();
+        currentJoke = data[0].text;
+        document.getElementById("joke").textContent = currentJoke;
+      } catch (e) {
+        currentJoke = "Fehler beim Laden des Witzes.";
+        document.getElementById("joke").textContent = currentJoke;
+      }
+    }
+
+    function speakJoke() {
+      if (!currentJoke) return;
+
+      const utterance = new SpeechSynthesisUtterance(currentJoke);
+      utterance.lang = "de-DE";
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+
+      const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
+      const fallbackVoice = voices.find(v => v.lang === "de-DE");
+      utterance.voice = googleVoice || fallbackVoice;
+
+      speechSynthesis.speak(utterance);
+
+      utterance.onend = () => {
+        document.getElementById("laugh").play();
+      };
+    }
+
+    function showEmoji() {
+      const emoji = document.getElementById("emoji");
+      emoji.style.display = "block";
+      setTimeout(() => {
+        emoji.style.display = "none";
+      }, 2000);
+    }
+
+    window.addEventListener("load", async () => {
+      voices = await loadVoices();
+      await fetchJoke();
+
+      document.body.addEventListener("click", () => {
+        document.getElementById("hint").style.display = "none";
+
+        // 🍻 Trinkgeräusch sofort beim Tippen
+        const drinkAudio = document.getElementById("drink");
+        drinkAudio.currentTime = 0;
+        drinkAudio.play().catch(e => {
+          console.warn("Trinkgeräusch konnte nicht abgespielt werden:", e);
+        });
+
+        // 🎉 Emoji-Explosion
+        showEmoji();
+
+        // 😂 Witz vorlesen, danach 🎧 Lacher
+        speakJoke();
+      }, { once: true });
+    });
+  </script>
+</body>
+</html>
