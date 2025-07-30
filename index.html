@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Witz des Tages</title>
+</head>
+<body>
+  <h1>😂 Dein Witz:</h1>
+  <p id="joke">Lade Witz...</p>
+
+  <script>
+    async function getJokeAndSpeak() {
+      try {
+        const res = await fetch("https://witzapi.de/api/joke");
+        const joke = await res.text();
+        document.getElementById("joke").textContent = joke;
+
+        const utterance = new SpeechSynthesisUtterance(joke);
+        utterance.lang = "de-DE";
+        speechSynthesis.speak(utterance);
+      } catch (err) {
+        document.getElementById("joke").textContent = "Fehler beim Laden des Witzes.";
+      }
+    }
+
+    getJokeAndSpeak();
+  </script>
+</body>
+</html>
