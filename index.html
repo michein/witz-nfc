@@ -2,38 +2,38 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <title>Witz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Erzähl mir einen Witz</title>
   <style>
     body {
       font-family: sans-serif;
       text-align: center;
       padding: 2em;
-      background: #f8f8f8;
+      background: #f4f4f4;
     }
     button {
-      padding: 1em 2em;
       font-size: 1.2em;
-      border-radius: 10px;
-      background-color: #4CAF50;
+      padding: 0.8em 1.5em;
+      background: #4CAF50;
       color: white;
       border: none;
+      border-radius: 8px;
+      cursor: pointer;
     }
-    p {
+    #joke {
       font-size: 1.4em;
-      margin-top: 1.5em;
+      margin-top: 1em;
     }
   </style>
 </head>
 <body>
-  <h1>😂 Erzähl mir einen Witz</h1>
-  <button onclick="getJokeAndSpeak()">Jetzt loslachen</button>
+  <h1>😂 Witz des Tages</h1>
+  <button onclick="getJokeAndSpeak()">Erzähl mir einen Witz</button>
   <p id="joke">...</p>
 
   <script>
     let voices = [];
 
-    // Stimmen laden
     window.speechSynthesis.onvoiceschanged = () => {
       voices = speechSynthesis.getVoices();
     };
@@ -44,8 +44,8 @@
 
       try {
         const res = await fetch("https://witzapi.de/api/joke");
-        const data = await res.json();
-        const joke = data[0].text;
+        const data = await res.json();                  // JSON korrekt parsen!
+        const joke = data[0].text;                      // Nur den Text extrahieren
 
         jokeEl.textContent = joke;
 
@@ -54,15 +54,13 @@
         utterance.rate = 0.95;
         utterance.pitch = 1;
 
-        // Stimme suchen: Google Deutsch bevorzugen
         const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
         const fallbackVoice = voices.find(v => v.lang === "de-DE");
-
         utterance.voice = googleVoice || fallbackVoice;
 
         speechSynthesis.speak(utterance);
       } catch (err) {
-        jokeEl.textContent = "Fehler beim Laden des Witzes 😢";
+        jokeEl.textContent = "Fehler beim Witzabruf.";
       }
     }
   </script>
