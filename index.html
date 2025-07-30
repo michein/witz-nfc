@@ -84,14 +84,16 @@
       speechSynthesis.speak(utterance);
 
       utterance.onend = () => {
-        // 🎧 Lacher nach dem Vorlesen
+        // Lacher abspielen
         const laughAudio = document.getElementById("laugh");
-        laughAudio.play();
+        laughAudio.currentTime = 0;
+        laughAudio.play().catch(e => console.warn("Lachen nicht abgespielt:", e));
 
-        // Nach Lachen Trinkgeräusch abspielen
+        // Wenn Lachen endet, Bieröffner spielen
         laughAudio.onended = () => {
           const drinkAudio = document.getElementById("drink");
-          drinkAudio.play();
+          drinkAudio.currentTime = 0;
+          drinkAudio.play().catch(e => console.warn("Bieröffner nicht abgespielt:", e));
         };
       };
     }
@@ -111,10 +113,7 @@
       document.body.addEventListener("click", () => {
         document.getElementById("hint").style.display = "none";
 
-        // 🎉 Emoji-Explosion sofort beim Tippen
         showEmoji();
-
-        // 😂 Witz vorlesen, danach Lachen und dann Bieröffner-Sound
         speakJoke();
       }, { once: true });
     });
