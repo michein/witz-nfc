@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Witz</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Witz vorlesen</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       text-align: center;
-      padding: 2em;
-      background: #f4f4f4;
+      margin: 2em;
+      background-color: #f0f0f0;
     }
     button {
       font-size: 1.2em;
-      padding: 0.8em 1.5em;
-      background: #4CAF50;
+      padding: 1em 2em;
+      background-color: #4caf50;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
     }
     #joke {
+      margin-top: 1.5em;
       font-size: 1.4em;
-      margin-top: 1em;
+      min-height: 3em;
     }
   </style>
 </head>
 <body>
-  <h1>😂 Witz des Tages</h1>
-  <button onclick="getJokeAndSpeak()">Erzähl mir einen Witz</button>
-  <p id="joke">...</p>
+  <h1>😂 Erzähl mir einen Witz</h1>
+  <button onclick="getJokeAndSpeak()">Jetzt Witz hören</button>
+  <p id="joke">Hier erscheint der Witz.</p>
 
   <script>
     let voices = [];
@@ -44,8 +45,8 @@
 
       try {
         const res = await fetch("https://witzapi.de/api/joke");
-        const data = await res.json();                  // JSON korrekt parsen!
-        const joke = data[0].text;                      // Nur den Text extrahieren
+        const data = await res.json(); // JSON parsen
+        const joke = data[0].text; // Nur den Text nehmen
 
         jokeEl.textContent = joke;
 
@@ -56,11 +57,13 @@
 
         const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
         const fallbackVoice = voices.find(v => v.lang === "de-DE");
+
         utterance.voice = googleVoice || fallbackVoice;
 
         speechSynthesis.speak(utterance);
-      } catch (err) {
-        jokeEl.textContent = "Fehler beim Witzabruf.";
+      } catch (error) {
+        jokeEl.textContent = "Fehler beim Laden des Witzes.";
+        console.error(error);
       }
     }
   </script>
