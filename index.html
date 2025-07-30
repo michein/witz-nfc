@@ -1,29 +1,70 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Witz des Tages</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erzähl mir einen Witz</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background: #f8f8f8;
+    }
+    button {
+      padding: 1em 2em;
+      font-size: 1.2em;
+      border-radius: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+    }
+    p {
+      font-size: 1.4em;
+      margin-top: 1.5em;
+    }
+  </style>
 </head>
 <body>
-  <h1>😂 Dein Witz:</h1>
-  <p id="joke">Lade Witz...</p>
+  <h1>😂 Erzähl mir einen Witz</h1>
+  <button onclick="getJokeAndSpeak()">Jetzt loslachen</button>
+  <p id="joke">...</p>
 
   <script>
+    let voices = [];
+
+    // Stimmen laden
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = speechSynthesis.getVoices();
+    };
+
     async function getJokeAndSpeak() {
+      const jokeEl = document.getElementById("joke");
+      jokeEl.textContent = "Lade Witz...";
+
       try {
         const res = await fetch("https://witzapi.de/api/joke");
-        const joke = await res.text();
-        document.getElementById("joke").textContent = joke;
+        const data = await res.json();
+        const joke = data[0].text;
+
+        jokeEl.textContent = joke;
 
         const utterance = new SpeechSynthesisUtterance(joke);
         utterance.lang = "de-DE";
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+
+        // Stimme suchen: Google Deutsch bevorzugen
+        const googleVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Google"));
+        const fallbackVoice = voices.find(v => v.lang === "de-DE");
+
+        utterance.voice = googleVoice || fallbackVoice;
+
         speechSynthesis.speak(utterance);
       } catch (err) {
-        document.getElementById("joke").textContent = "Fehler beim Laden des Witzes.";
+        jokeEl.textContent = "Fehler beim Laden des Witzes 😢";
       }
     }
-
-    getJokeAndSpeak();
   </script>
 </body>
 </html>
