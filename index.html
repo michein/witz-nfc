@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Automatisch Witz vorlesen</title>
+  <title>Witz wird vorgelesen</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,9 +12,9 @@
       background-color: #f0f0f0;
     }
     #joke {
-      margin-top: 1.5em;
-      font-size: 1.4em;
-      min-height: 3em;
+      margin-top: 2em;
+      font-size: 1.5em;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -50,21 +50,22 @@
 
         speechSynthesis.speak(utterance);
       } catch (error) {
-        jokeEl.textContent = "Fehler beim Laden des Witzes.";
+        jokeEl.textContent = "Fehler beim Witzabruf.";
         console.error(error);
       }
     }
 
-    // Warte auf Stimmen-Ladung, dann automatisch Witz holen und sprechen
+    // Starte automatisch beim Laden der Seite
     window.onload = () => {
-      if (speechSynthesis.getVoices().length === 0) {
-        speechSynthesis.onvoiceschanged = () => {
-          voices = speechSynthesis.getVoices();
-          getJokeAndSpeak();
-        };
-      } else {
+      const initVoices = () => {
         voices = speechSynthesis.getVoices();
         getJokeAndSpeak();
+      };
+
+      if (speechSynthesis.getVoices().length === 0) {
+        speechSynthesis.onvoiceschanged = initVoices;
+      } else {
+        initVoices();
       }
     };
   </script>
